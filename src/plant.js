@@ -9,28 +9,83 @@ const storeState = (initialState = {}) => {
 
 var plantsArray = [];
 
-export const plant1 = storeState();
-export const plant2 = storeState();
 
-export function addNewPlant()
-{
-  const newPlant = storeState;
-  plantsArray.push(newPlant);
+export function addNewPlant(plantKind) {
+  return () => {
+    const newPlant = storeState();
+    plantsArray.push(newPlant()());
+  };
 }
-// This is a function factory. We can easily create more specific functions that alter a plant's soil, water, and light to varying degrees.
 
-const changeState = (prop) => {
-  return (value) => {
-    return (state) => ({
-      ...state,
-      [prop]: (state[prop] || 0) + value
-    });
+//function factory
+
+
+const initalizeOrResetState = (x, y) => x = y;
+const initializeOrResetStateToValue = (x) => initalizeOrResetState.apply(x);
+
+const addValueToState = (x, y) => x + y;
+
+const subtractValueToState = (x, y) => y - x;
+
+const addSpecifiedValueToState = (x) => addValueToState.apply(x);
+const subtractSpecifiedValueToState = (x) => subtractValueToState.apply(x);
+
+
+
+const changeStateForPropWithFunction = (prop, changeStateFunction) => {
+  return (state) => ({
+    ...state,
+    [prop]: changeStateFunction((state[prop] || 0))()
+  });
+};
+
+const initializedShooter = changeStateForPropWithFunction("laser", initializeOrResetStateToValue(100));
+
+const shootLaser = changeStateForPropWithFunction("laser")(subtractSpecifiedValueToState(5));
+const throwBomb = changeStateForPropWithFunction("bomb")(subtractSpecifiedValueToState(10));
+
+const feed = changeStateForPropWithFunction("soil")(addSpecifiedValueToState(1));
+export const blueFood = changeStateForPropWithFunction("soil")(addSpecifiedValueToState(5));
+
+
+const hydrate = changeStateForPropWithFunction("water")(addSpecifiedValueToState(1));
+export const superWater = changeStateForPropWithFunction("water")(addSpecifiedValueToState(5));
+
+
+
+const steal = (property, value) => {
+  return function () {
+    const obj = {
+      steal: function (target) {
+        let newValue = (target[property] < value) ? target[property] : value; 
+        this[property] = this.property + newValue;
+        target[property] = target[property] - newValue;
+      }
+    };
+    return obj;
   };
 };
 
-const feed = changeState("soil")(1);
-export const blueFood = changeState("soil")(5);
+const StealSoil = steal("soil", 5);
+const SuperStealSoil = steal("soil", 10);
+
+const StealWater = steal("water", 5);
+const SuperStealWater = steal("water", 10);
+
+export const plant1State = storeState();
+export const plant2State = storeState();
+
+function AddStealWaterAndStealSuperSoil(plant) {
+  return { ...plant(), ...StealWater(), ...SuperStealSoil() };
+}
+
+function AddSuperStealWaterAndStealSoil(plant) {
+  return { ...plant(), ...SuperStealWater(), ...StealSoil()};
+}
+
+function initalizeFirstPlant(plant) {
+  let updatedPlant = AddStealWaterAndStealSuperSoil(plant);
+  plant = storeState()
+}
 
 
-const hydrate = changeState("water")(1);
-export const superWater = changeState("water")(5);
