@@ -27,11 +27,8 @@ export const changeStateForPropWithFunction = (prop, changeStateFunction) => {
   };
 };
 
-
 export const initializedSoil = changeStateForPropWithFunction("soil", initializeOrResetStateToValue(50));
 export const initializedWater = changeStateForPropWithFunction("water", initializeOrResetStateToValue(20));
-
-
 
 const feed = changeStateForPropWithFunction("soil",addSpecifiedValueToState(1));
 export const blueFood = changeStateForPropWithFunction("soil",addSpecifiedValueToState(5));
@@ -60,6 +57,16 @@ const SuperStealSoil = steal("soil", 10,"superStealSoil");
 const StealWater = steal("water", 5,"stealWater");
 const SuperStealWater = steal("water", 10,"superStealWater");
 
+
+export const addFunctionWithName = (prop, newFunction) => {
+  return (state) => {
+    let newState = {...state};
+    newState[prop] = newFunction;
+    return newState;
+  };
+};
+
+
 export function CreatePlantType1() {
   
   let obj = {...StealWater(), ...SuperStealSoil()};
@@ -74,6 +81,14 @@ export function CreatePlantType2() {
   let plant = storeState(obj);
   plant = initializePlant(plant);
   
+  return plant;
+}
+
+export function CreatePlantType3()
+{
+  let plant = storeState();
+  plant = initializePlant(plant);
+  plant(addFunctionWithName("stealSoil",StealSoil()["stealSoil"]));
   return plant;
 }
 
