@@ -27,12 +27,11 @@ export const changeStateForPropWithFunction = (prop, changeStateFunction) => {
   };
 };
 
-export const initializedShooter = changeStateForPropWithFunction("laser", initializeOrResetStateToValue(100));
+
 export const initializedSoil = changeStateForPropWithFunction("soil", initializeOrResetStateToValue(50));
 export const initializedWater = changeStateForPropWithFunction("water", initializeOrResetStateToValue(20));
 
-const shootLaser = changeStateForPropWithFunction("laser",subtractSpecifiedValueToState(5));
-const throwBomb = changeStateForPropWithFunction("bomb",subtractSpecifiedValueToState(10));
+
 
 const feed = changeStateForPropWithFunction("soil",addSpecifiedValueToState(1));
 export const blueFood = changeStateForPropWithFunction("soil",addSpecifiedValueToState(5));
@@ -41,39 +40,44 @@ export const hydrate = changeStateForPropWithFunction("water",addSpecifiedValueT
 export const superWater = changeStateForPropWithFunction("water",addSpecifiedValueToState(5));
 
 
-const steal = (property, value) => {
+const steal = (property, value, prop) => {
   return function () {
     const obj = {
-      steal: function (target) {
-        let newValue = (target[property] < value) ? target[property] : value; 
-        this[property] = this.property + newValue;
-        target[property] = target[property] - newValue;
+      [prop]: function (stealer,target) {
+        let newValue = (target()[property] < value) ? target()[property] : value;
+        stealer(changeStateForPropWithFunction(property,addSpecifiedValueToState(newValue)));
+        target(changeStateForPropWithFunction(property,subtractSpecifiedValueToState(newValue)));
+       
       }
     };
     return obj;
   };
 };
 
-const StealSoil = steal("soil", 5);
-const SuperStealSoil = steal("soil", 10);
+const StealSoil = steal("soil", 5,"stealSoil");
+const SuperStealSoil = steal("soil", 10,"superStealSoil");
 
-const StealWater = steal("water", 5);
-const SuperStealWater = steal("water", 10);
+const StealWater = steal("water", 5,"stealWater");
+const SuperStealWater = steal("water", 10,"superStealWater");
 
 export function CreatePlantType1() {
   
-  var obj = {...StealWater(), ...SuperStealSoil()};
+  let obj = {...StealWater(), ...SuperStealSoil()};
   let plant = storeState(obj);
-  plant(initializedShooter);
-  plant(initializedWater);
-  plant(initializedSoil);
+  plant = initializePlant(plant);
+
   return plant;
 }
 
 export function CreatePlantType2() {
-  var obj = { ...SuperStealWater(), ...StealSoil()};
+  let obj = { ...SuperStealWater(), ...StealSoil()};
   let plant = storeState(obj);
-  plant(initializedShooter);
+  plant = initializePlant(plant);
+  
+  return plant;
+}
+
+function initializePlant(plant){
   plant(initializedWater);
   plant(initializedSoil);
   return plant;
